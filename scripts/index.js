@@ -16,19 +16,21 @@ function createCard(cardData, deleteCallback) {
   cardImage.alt = `Фотография ${cardData.name}`;
   cardTitle.textContent = cardData.name;
 
-  // Добавляем обработчик удаления
-  deleteButton.addEventListener('click', () => deleteCallback(cardElement));
+  // Обработчик клика по кнопке удаления
+  deleteButton.addEventListener('click', () => {
+    deleteCallback(cardElement);
+  });
   
   return cardElement;
 }
 
 // @todo: Функция удаления карточки
-function deleteCard(cardElement) {
+function handleDeleteCard(cardElement) {
   cardElement.remove();
 }
 
 // @todo: Вывести карточки на страницу
 initialCards.forEach((cardData) => {
-  const newCard = createCard(cardData, deleteCard);
+  const newCard = createCard(cardData, handleDeleteCard);
   placesList.append(newCard);
 });
