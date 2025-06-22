@@ -1,17 +1,23 @@
+let escapeHandler = null;
+
 export function openModal(popupElement) {
   popupElement.classList.add("popup_is-opened");
-
-  function hendlerEscape(evt) {
+  escapeHandler = function(evt) {
     if (evt.key === "Escape") {
-      closeModal(popupElement);
+      const openedPopup = document.querySelector('.popup_is-opened');
+      if (openedPopup) {
+        closeModal(openedPopup);
+      }
     }
-  }
-  document.addEventListener("keydown", hendlerEscape);
-  openModal.hendlerEsc = hendlerEscape;
+  };
+
+  document.addEventListener("keydown", escapeHandler);
 }
 
 export function closeModal(popupElement) {
   popupElement.classList.remove("popup_is-opened");
-  document.removeEventListener("keydown", openModal.hendlerEsc);
-  delete openModal.hendlerEsc;
+  if (escapeHandler) {
+    document.removeEventListener("keydown", escapeHandler);
+    escapeHandler = null;
+  }
 }
