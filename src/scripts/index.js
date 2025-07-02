@@ -1,7 +1,9 @@
 import "../pages/index.css";
 import { initialCards } from "./initialCards.js";
-import { createCard, deleteCard, likeCard } from "./card.js";
+import { createCard, deleteCard, likeCard } from "./cards.js";
 import { openModal, closeModal } from "./modal.js";
+import { enableValidation, clearValidation } from "./validation.js";
+import { getInitialCards } from "./api.js";
 const placesList = document.querySelector(".places__list");
 const profileEditButton = document.querySelector(".profile__edit-button");
 const profileAddButton = document.querySelector(".profile__add-button");
@@ -28,16 +30,22 @@ const popupImage = document.querySelector(".popup__image");
 const cardCreateArgs = {
   deleteCardFunc: deleteCard,
   likeCardFunc: likeCard,
-  handleImageFunc: handlerPopupImage,
+  handleImageFunc: hendlerPopupImage,
 };
 
-//рендерим карточки
 initialCards.forEach((card) => {
   renderCard(card);
 });
 
-//Слушаем кнопки
 profileEditButton.addEventListener("click", () => {
+  clearValidation(formProfile, {
+    inputSelector: ".popup__input",
+    inputErrorClass: "popup__input_type_error",
+    errorClass: "popup__error_visible",
+    popupErrorClass: ".popup__error",
+    submitButtonSelector: ".popup__button",
+    inactiveButtonClass: "popup__button_disabled",
+  });
   fillFormProfile();
   openModal(popupTypeEdit);
 });
@@ -46,7 +54,6 @@ profileAddButton.addEventListener("click", () => {
   openModal(popupTypeNewCard);
 });
 
-//Вешаем обработчики закрытия и класс анимации на все попапы
 popups.forEach((popup) => {
   popup.classList.add("popup_is-animated");
   popup.addEventListener("mousedown", (evt) => {
@@ -59,23 +66,19 @@ popups.forEach((popup) => {
   });
 });
 
-//вешаем обработчики на формы
 formProfile.addEventListener("submit", handleFormProfileSubmit);
 formPlace.addEventListener("submit", handleFormCardSubmit);
 
-//объявляем функцию рендера карточки
 function renderCard(cardData, method = "append") {
   const cardElement = createCard(cardData, cardCreateArgs);
   placesList[method](cardElement);
 }
 
-//объявляем функцию заполнения профиля
 function fillFormProfile() {
   formProfileName.value = profileTitle.textContent;
   formProfileDescription.value = profileDescription.textContent;
 }
 
-//Объявляем обработчики сабмитов
 function handleFormProfileSubmit(evt) {
   evt.preventDefault();
   profileTitle.textContent = formProfileName.value;
@@ -91,12 +94,31 @@ function handleFormCardSubmit(evt) {
   };
   renderCard(newCard, "prepend");
   closeModal(popupTypeNewCard);
+  clearValidation(formPlace, {
+    submitButtonSelector: ".popup__button",
+    inactiveButtonClass: "popup__button_disabled",
+  });
   formPlace.reset();
 }
 
-function handlerPopupImage(link, name) {
+function hendlerPopupImage(link, name) {
   popupImage.src = link;
   popupImage.alt = name;
   popupCaption.textContent = name;
   openModal(popupTypeImage);
 }
+
+enableValidation({
+  formSelector: ".popup__form",
+  inputSelector: ".popup__input",
+  submitButtonSelector: ".popup__button",
+  inactiveButtonClass: "popup__button_disabled",
+  inputErrorClass: "popup__input_type_error",
+  errorClass: "popup__error_visible",
+});
+
+getInitialCards()
+  .then((result) => {})
+  .catch((err) => {
+    console.log(err);
+  });
