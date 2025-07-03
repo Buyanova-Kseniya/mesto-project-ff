@@ -1,19 +1,18 @@
-const config = {
-  baseUrl: "https://nomoreparties.co/v1/wff-cohort-41",
-  headers: {
-    authorization: "4b115fea-9737-434b-8244-9a612a20671d",
-    "Content-Type": "application/json",
-  },
-};
+@import url('./__description/card__description.css');
+@import url('./__image/card__image.css');
+@import url('./__likes/card__likes.css');
+@import url('./__like-button/card__like-button.css');
+@import url('./__like-button/_is-active/card__like-button_is-active.css');
+@import url('./__like-counter/card__like-counter.css');
+@import url('./__delete/card__delete.css');
+@import url('./__delete-button/card__delete-button.css');
+@import url('./__title/card__title.css');
 
-export const getInitialCards = () => {
-  return fetch(`${config.baseUrl}/cards`, {
-    headers: config.headers,
-  }).then((res) => {
-    if (res.ok) {
-      return res.json();
-    }
-
-    return Promise.reject(`Ошибка: ${res.status}`);
-  });
-};
+.card {
+  font-family: 'Inter', Arial, sans-serif;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden;
+}
