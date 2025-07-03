@@ -55,7 +55,7 @@ export const deleteCardApi = (cardId) => {
 };
 
 export const toggleLikeApi = (cardId, isLiked) => {
-  let method = isLiked ? "DELETE" : "PUT";
+  const method = isLiked ? "DELETE" : "PUT";
 
   return fetch(`${config.baseUrl}/cards/likes/${cardId}`, {
     method: method,
