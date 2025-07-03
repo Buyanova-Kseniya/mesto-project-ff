@@ -1,8 +1,9 @@
 import '../pages/index.css';
-import {createCard, deleteCard, likeCard} from './cards.js';
+import {createCard, deleteCard, likeCard} from './card.js';
 import {openModal, closeModal} from './modal.js';
 import {enableValidation, clearValidation} from './validation.js';
 import {getUserDataApi, updateProfileApi, getInitialCardsApi, postCardApi, updateAvatarApi} from './api.js';
+
 const placesList = document.querySelector('.places__list');
 const profileImageContainer = document.querySelector('.profile__image-container')
 const profileImage = document.querySelector('.profile__image');
@@ -33,61 +34,58 @@ const popupTypeImage = document.querySelector('.popup_type_image');
 const popupCaption = popupTypeImage.querySelector('.popup__caption');
 const popupImage = document.querySelector('.popup__image');
 
-export let currentId;
-
 const cardCreateArgs = {
-  // deleteCardFunc: deleteCard,
-  // likeCardFunc: likeCard,
-  handleImageFunc: hendlerPopupImage,
-};
+    deleteCardFunc: deleteCard,
+    likeCardFunc: likeCard,
+    handleImageFunc: hendlerPopupImage,
+  };
 
-//заполняем профиль данными с сервера и сохраняем свой id,
+const validationConfigClear =  {
+  inputSelector: '.popup__input',
+  inputErrorClass: 'popup__input_type_error',
+  errorClass: 'popup__error_visible',
+  popupErrorClass: '.popup__error',
+  submitButtonSelector: '.popup__button',
+  inactiveButtonClass: 'popup__button_disabled'
+}
+
+//заполняем профиль данными с сервера и передаем свой id в cardCreateArgs,
 //рендерим карточки
 Promise.all([getUserDataApi(), getInitialCardsApi()])
 .then(([userData, cardArray]) => {
+  const userId = userData._id;
+  cardCreateArgs.currentId = userId;
+
   profileTitle.textContent = userData.name;
   profileDescription.textContent = userData.about;
   profileImage.src = userData.avatar;
-  currentId = userData._id;
 
   cardArray.forEach((card) => {
-    renderCard(card);
-    console.log(card);
+    renderCard(card, cardCreateArgs);
   });
 })
-.catch(error => {
-  console.error('Ошибка загрузки данных:', error);
-});
+.catch(hendleError);
 
 //Слушаем кнопки
 profileImageContainer.addEventListener('click', (evt) => {
-  clearValidation(formAvatar, {
-    inputSelector: '.popup__input',
-    inputErrorClass: 'popup__input_type_error',
-    errorClass: 'popup__error_visible',
-    popupErrorClass: '.popup__error',
-    submitButtonSelector: '.popup__button',
-    inactiveButtonClass: 'popup__button_disabled'
-  });
-  fillForm(evt);
+  clearValidation(formAvatar, validationConfigClear);
+  formAvatarUrl.value = profileImage.src;
+  fillSubmitButton(formAvatarSubmitButton);
   openModal(popupTypeAvatar);
 });
 
 profileEditButton.addEventListener('click', (evt) => {
-  clearValidation(formProfile, {
-    inputSelector: '.popup__input',
-    inputErrorClass: 'popup__input_type_error',
-    errorClass: 'popup__error_visible',
-    popupErrorClass: '.popup__error',
-    submitButtonSelector: '.popup__button',
-    inactiveButtonClass: 'popup__button_disabled'
-  });
-  fillForm(evt);
+  clearValidation(formProfile, validationConfigClear);
+  formProfileName.value = profileTitle.textContent;
+  formProfileDescription.value = profileDescription.textContent;
+  fillSubmitButton(formProfileSubmitButton);
   openModal(popupTypeEdit);
 });
 
 profileAddPlaceButton.addEventListener('click', (evt) => {
-  fillForm(evt);
+  formPlace.reset();
+  clearValidation(formPlace, validationConfigClear);
+  fillSubmitButton(formPlaceSubmitButton);
   openModal(popupTypeNewCard);
 });
 
@@ -109,26 +107,20 @@ formAvatar.addEventListener('submit', handleFormAvatarSubmit);
 formProfile.addEventListener('submit', handleFormProfileSubmit);
 formPlace.addEventListener('submit', handleFormNewCardSubmit);
 
+//объявляем функцию-обработчик ошибки в блоке catch
+export function hendleError(err) {
+  return console.error('Ошибка загрузки данных:', err);
+}
+
 //объявляем функцию рендера карточки
-function renderCard(cardData, method = 'append') {
+function renderCard(cardData, cardCreateArgs, method = 'append') {
   const cardElement = createCard(cardData, cardCreateArgs);
   placesList[method](cardElement);
 }
 
 //объявляем функцию заполнения профиля
-function fillForm(elem) {
-  if (elem.target === profileEditButton) {
-  formProfileName.value = profileTitle.textContent;
-  formProfileDescription.value = profileDescription.textContent;
-  formProfileSubmitButton.textContent = 'Сохранить';
-  }
-  if (elem.target === profileImageContainer) {
-    formAvatarUrl.value = profileImage.src;
-    formAvatarSubmitButton.textContent = 'Сохранить';
-  }
-  if (elem.target === profileAddPlaceButton) {
-    formPlaceSubmitButton.textContent = 'Сохранить';
-  }
+function fillSubmitButton(button) {
+  button.textContent = 'Сохранить';
 }
 
 //Объявляем обработчики сабмитов
@@ -140,21 +132,21 @@ function handleFormAvatarSubmit(evt) {
   .then(updatedProfile => {
   profileImage.src = formAvatarUrl.value;
   closeModal(popupTypeAvatar);
-  console.log(updatedProfile)
-  });
+  })
+  .catch(hendleError);
 }
 
 function handleFormProfileSubmit(evt) {
   evt.preventDefault();
   formProfileSubmitButton.textContent = '...';
-  profileTitle.textContent = formProfileName.value;
-  profileDescription.textContent = formProfileDescription.value;
 
   updateProfileApi(formProfileName.value, formProfileDescription.value)
   .then(updatedProfile => {
-    console.log(updatedProfile);
+    profileTitle.textContent = formProfileName.value;
+    profileDescription.textContent = formProfileDescription.value;
     closeModal(popupTypeEdit);
-  });
+  })
+  .catch(hendleError);
 }
 
 function handleFormNewCardSubmit(evt) {
@@ -168,16 +160,10 @@ function handleFormNewCardSubmit(evt) {
   .then(newCard => {
     placesList.prepend(createCard(newCard, cardCreateArgs));
     closeModal(popupTypeNewCard);
-    clearValidation(formPlace, {
-      inputSelector: '.popup__input',
-      inputErrorClass: 'popup__input_type_error',
-      errorClass: 'popup__error_visible',
-      popupErrorClass: '.popup__error',
-      submitButtonSelector: '.popup__button',
-      inactiveButtonClass: 'popup__button_disabled'
-    });
+    clearValidation(formPlace, validationConfigClear);
     formPlace.reset();
-  });
+  })
+  .catch(hendleError);
 }
 
 function hendlerPopupImage(link, name) {
@@ -187,6 +173,7 @@ function hendlerPopupImage(link, name) {
   openModal(popupTypeImage);
 }
 
+//включаем валидацию
 enableValidation({
   formSelector: '.popup__form',
   inputSelector: '.popup__input',

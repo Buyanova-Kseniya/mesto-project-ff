@@ -1,17 +1,17 @@
 export function openModal(popupElement) {
-  popupElement.classList.add('popup_is-opened');
+  popupElement.classList.add("popup_is-opened");
 
-  function  hendlerEscape(evt) {
-    if (evt.key === 'Escape') {
+  function hendlerEscape(evt) {
+    if (evt.key === "Escape") {
       closeModal(popupElement);
     }
   }
-  document.addEventListener('keydown', hendlerEscape);
+  document.addEventListener("keydown", hendlerEscape);
   popupElement.hendlerEsc = hendlerEscape;
 }
 
 export function closeModal(popupElement) {
-  popupElement.classList.remove('popup_is-opened');
-  document.removeEventListener('keydown', popupElement.hendlerEsc);
+  popupElement.classList.remove("popup_is-opened");
+  document.removeEventListener("keydown", popupElement.hendlerEsc);
   delete popupElement.hendlerEsc;
 }
